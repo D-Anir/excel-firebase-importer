@@ -1,0 +1,161 @@
+<html>
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Excel Firebase Importer</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="styles.css">
+        <script src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"></script>
+        <script src="validations.js"></script>
+    </head>
+    <body>
+        <div class="input-tag">
+            <input type="file" id="input">
+        </div>
+
+        <div id="prompt"></div>
+
+        <div class="table-tag">
+            <table id="tbl-data"></table>
+        </div>
+
+        <script type="text/javascript">
+
+            class QsBankModel {
+                constructor(chapterName, chapterSeqNum, grade, isMCQ, mcqOptions, marks,
+                            modelAnswer, questionDesc, sub, year) {
+                                this.chapterName = chapterName;
+                                this.chapterSeqNum = chapterSeqNum;
+                                this.grade = grade;
+                                this.isMCQ = isMCQ;
+                                this.mcqOptions = mcqOptions;
+                                this.marks = marks;
+                                this.modelAnswer = modelAnswer;
+                                this.questionDesc = questionDesc;
+                                this.subject = sub;
+                                this.year = year;
+                            }
+            }
+
+
+            var input = document.getElementById('input');    
+            input.addEventListener('change', function () {
+                readXlsxFile(input.files[0]).then(function(data){        
+                    console.log(data);
+                    var i= 0;
+                    data.map((row, index)=> {
+                        if (i==0){
+                            let table = document.getElementById('tbl-data');
+                            generateTableHead(table, row);
+                        }
+
+                        if (i> 0){
+                            let table = document.getElementById('tbl-data');
+                            generateTableRows(table, row, i);
+                        }
+                        i++;
+                    });
+                    console.log(i);
+                });
+
+                setTimeout(() => {
+                    var table = document.getElementById("tbl-data");
+
+                    var data = tableToObjectList(table)
+                    // console.log(data);
+
+                    // if(!validateRowData(data)){
+                    //     console.log(data);
+                    // }
+
+                    validateRowData(data);
+
+                    // var myJson = JSON.stringify(data);
+                    // console.log(myJson)
+                }, 500);
+            });
+
+            function tableToObjectList(table) {
+                var data = [];
+                
+                // storing headers from first row
+                var headers = [];
+                for(var i=0; i<table.rows[0].cells.length; i++){
+                    headers[i] = table.rows[0].cells[i].innerText;
+                }
+
+                // traversing rest of the table
+                for(var i=1; i<table.rows.length; i++){
+                    var tableRow = table.rows[i];
+                    var rowData = {};
+                    for(var j=0; j<tableRow.cells.length; j++){
+                        rowData[headers[j]] = tableRow.cells[j].innerText;
+                    }
+                    data.push(rowData);
+                }
+                return data;
+            }
+
+            function generateTableHead(table, data){
+                let thead = table.createTHead();
+                let row = thead.insertRow();
+
+                // creating a column for row numbers
+                var th = document.createElement('th');
+                var text = document.createTextNode("Sl. No.");
+                th.appendChild(text);
+                row.appendChild(th);
+
+                // creating column for Language and QsOwner
+                var th = document.createElement('th');
+                var text = document.createTextNode("Language");
+                th.appendChild(text);
+                row.appendChild(th);
+
+                var th = document.createElement('th');
+                var text = document.createTextNode("Question Owner");
+                th.appendChild(text);
+                row.appendChild(th);
+
+                for(let key of data){
+                    let th = document.createElement('th');
+                    let text = document.createTextNode(key);
+                    th.appendChild(text);
+                    row.appendChild(th);
+                }
+            }
+
+            function generateTableRows(table, data, index){
+                let newRow = table.insertRow(-1);
+                
+                // adding row numbers
+                var newCell = newRow.insertCell();
+                var newText = document.createTextNode(index);
+                newCell.appendChild(newText);
+
+                // adding values for language and qsOwner
+                var newCell = newRow.insertCell();
+                var newText = document.createTextNode("BN");
+                newCell.appendChild(newText);
+
+                var newCell = newRow.insertCell();
+                var newText = document.createTextNode("classroute.innovations@gmail.com");
+                newCell.appendChild(newText);
+
+                data.map((row, index)=> {
+                    let newCell = newRow.insertCell();
+                    let newText = document.createTextNode(row);
+                    newCell.appendChild(newText);
+                })
+            }
+
+        </script>
+    </body>
+</html>
